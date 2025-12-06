@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:prueba_tecnica_flutter/presentation/screen/home_screen.dart';
 
-
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -19,7 +18,6 @@ class SplashScreen extends StatelessWidget {
       duration: 2200,
       splashTransition: SplashTransition.fadeTransition,
       pageTransitionType: PageTransitionType.fade,
-
       splash: _splashBody(size),
     );
   }
@@ -29,29 +27,29 @@ class SplashScreen extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: size.height * 0.15),
-
-
-            FadeIn(
-              delay: const Duration(milliseconds: 400),
-              child: const Text(
-                "Prueba Técnica Flutter",
-                style: TextStyle(
-                  fontSize: 26,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            Center(
+              child: FadeIn(
+                delay: const Duration(milliseconds: 500),
+                child: const Text(
+                  "Prueba Técnica Flutter",
+                  style: TextStyle(
+                    fontSize: 26,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-
         Positioned(
           bottom: size.height * 0.05,
           child: const Text(
             "Versión 1.0.0",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: Colors.white70, fontSize: 15),
           ),
         )
       ],

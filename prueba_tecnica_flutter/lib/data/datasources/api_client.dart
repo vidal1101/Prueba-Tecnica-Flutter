@@ -8,7 +8,7 @@ class ApiClient {
 
   Future<List<dynamic>> getItems() async {
     try {
-      final response = await dio.get("https://jsonplaceholder.typicode.com/photos?_limit=20");
+      final response = await dio.get("https://picsum.photos/v2/list");
 
       if (response.statusCode == 200) {
         return response.data;

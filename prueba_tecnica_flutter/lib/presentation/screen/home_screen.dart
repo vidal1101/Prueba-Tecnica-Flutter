@@ -1,5 +1,8 @@
-
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:prueba_tecnica_flutter/app/routes.dart';
+import 'package:prueba_tecnica_flutter/presentation/widgets/widgets.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -7,15 +10,43 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
-        title: const Text("Home"),
-        backgroundColor: Colors.blue,
-      ),
-      body: const Center(
-        child: Text(
-          "Bienvenido a la prueba técnica",
-          style: TextStyle(fontSize: 18),
+        backgroundColor: Colors.black,
+        title: const Text(
+          "Menú principal",
+          style: TextStyle(color: Colors.white),
         ),
+      ),
+
+      body: ListView(
+        padding: const EdgeInsets.only(top: 20),
+        children: [
+          FadeInLeft(
+            delay: const Duration(milliseconds: 300),
+            child: MenuCard(
+              title: "Datos de la API",
+              subtitle: "Consultar lista remota de imágenes",
+              icon: Icons.cloud_outlined,
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.apiList);
+              },
+            ),
+          ),
+
+          FadeInRight(
+            delay: const Duration(milliseconds: 300),
+            child: MenuCard(
+              title: "Preferencias",
+              subtitle: "CRUD con base de datos local SQLite",
+              icon: Icons.settings_outlined,
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.prefsList);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
