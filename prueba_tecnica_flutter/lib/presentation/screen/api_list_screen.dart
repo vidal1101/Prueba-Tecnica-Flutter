@@ -59,8 +59,7 @@ class ApiListScreen extends StatelessWidget {
                 itemBuilder: (_, i) {
                   final item = items[i];
                   return ApiItemCard(
-                    title: item["author"],
-                    imageUrl: item["download_url"],
+                    item: item,
                   );
                 },
               );

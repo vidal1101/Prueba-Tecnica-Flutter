@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:prueba_tecnica_flutter/presentation/screen/screen.dart';
 
-
 class AppRoutes {
-
   static const splash = '/';
   static const home = '/home';
 
@@ -14,13 +13,11 @@ class AppRoutes {
   static const prefsList = '/prefs';
   static const prefsNew = '/prefs/new';
   static const prefsDetail = '/prefs/detail';
-
 }
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      
       case AppRoutes.splash:
         return _page(const SplashScreen());
 
@@ -43,9 +40,9 @@ class AppRouter {
         return _page(const PrefsNewScreen());
 
       case AppRoutes.prefsDetail:
-        final int id = settings.arguments as int;
-        return _page(PrefsDetailScreen(id: id));
-    
+        final item = settings.arguments as LocalImageEntity;
+        return _page(PrefsDetailScreen(image: item));
+
       default:
         return _page(
           const Scaffold(

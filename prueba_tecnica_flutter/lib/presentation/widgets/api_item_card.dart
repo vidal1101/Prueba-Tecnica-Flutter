@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:prueba_tecnica_flutter/data/datasources/local/local_db.dart';
 
 class ApiItemCard extends StatelessWidget {
-  final String title;
-  final String imageUrl;
+  final Map<String, dynamic> item;
 
   const ApiItemCard({
     super.key,
-    required this.title,
-    required this.imageUrl,
+    required this.item,
   });
 
   @override
@@ -38,7 +37,7 @@ class ApiItemCard extends StatelessWidget {
               bottomLeft: Radius.circular(14),
             ),
             child: Image.network(
-              imageUrl,
+              item['download_url'],
               width: 100,
               height: 90,
               fit: BoxFit.cover,
@@ -54,15 +53,52 @@ class ApiItemCard extends StatelessWidget {
           const SizedBox(width: 12),
 
           Expanded(
-            child: Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item['author'],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                    ),
+                    onPressed: () async {
+                      final success = await LocalDB.instance.insertImage({
+                        "id": item["id"],
+                        "author": item["author"],
+                        "download_url": item["download_url"],
+                      });
+                  
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: success
+                              ? Colors.green
+                              : Colors.red,
+                          content: Text(
+                            success
+                                ? "Imagen guardada"
+                                : "Ya existe en la base local",
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text("Guardar",
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
