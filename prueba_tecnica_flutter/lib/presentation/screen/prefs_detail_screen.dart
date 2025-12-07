@@ -1,9 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:prueba_tecnica_flutter/app/di.dart';
 import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_cubit.dart';
+import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_state.dart';
 import 'package:prueba_tecnica_flutter/presentation/widgets/image_zoom_viewer.dart';
 
 class PrefsDetailScreen extends StatefulWidget {
@@ -16,40 +16,41 @@ class PrefsDetailScreen extends StatefulWidget {
 }
 
 class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
-  late TextEditingController authorController;
+  late TextEditingController nameController;
 
   @override
   void initState() {
     super.initState();
-    authorController = TextEditingController(text: widget.image.author);
+    // Inicializar con customName si existe, si no mostrar author como ayuda
+    nameController = TextEditingController(
+      text: widget.image.customName?.isNotEmpty == true
+          ? widget.image.customName
+          : widget.image.author,
+    );
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _saveChanges() async {
-    final newAuthor = authorController.text.trim();
+    final newName = nameController.text.trim();
 
-    if (newAuthor.isEmpty) {
+    if (newName.isEmpty || newName.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("El autor no puede estar vacío"),
+          content: Text("El nombre personalizado debe tener al menos 2 caracteres"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    await di.localImagesCubit.updateImage(
-      widget.image.id,
-      newAuthor,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Cambios guardados"),
-        backgroundColor: Colors.black87,
-      ),
-    );
-
-    Navigator.pop(context);
+    // Pedimos al cubit que actualice el customName (no el author)
+    di.localImagesCubit.updateImage(widget.image.id, newName);
+    // No navegamos ni mostramos snack acá: lo manejará el BlocListener abajo.
   }
 
   Future<void> _confirmDelete() async {
@@ -76,16 +77,8 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
     );
 
     if (confirm == true) {
-      await di.localImagesCubit.deleteImage(widget.image.id);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Imagen eliminada"),
-          backgroundColor: Colors.black87,
-        ),
-      );
-
-      Navigator.pop(context);
+      di.localImagesCubit.deleteImage(widget.image.id);
+      // BlocListener escucha LocalImageDeleted y hará el pop + snackbar.
     }
   }
 
@@ -93,26 +86,61 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
   Widget build(BuildContext context) {
     final img = widget.image;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("Detalle", style: TextStyle(color: Colors.white)),
-      ),
+    return BlocListener<LocalImagesCubit, LocalImagesState>(
+      bloc: di.localImagesCubit,
+      listener: (context, state) {
+        // Manejar resultado de update
+        if (state is LocalImageUpdated) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Cambios guardados"),
+              backgroundColor: Colors.black87,
+            ),
+          );
+          Navigator.pop(context); // volver al listado (ya refrescará por cubit)
+        }
 
-      body: BlocListener<LocalImagesCubit, dynamic>(
-        listener: (context, state) {},
-        child: ListView(
+        // Manejar eliminación
+        if (state is LocalImageDeleted) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Imagen eliminada"),
+              backgroundColor: Colors.black87,
+            ),
+          );
+          Navigator.pop(context); // volver al listado
+        }
+
+        // Manejar errores
+        if (state is LocalImagesError) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: const Text("Detalle", style: TextStyle(color: Colors.white)),
+        ),
+        body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 🔥 Imagen con zoom
+            // Imagen con zoom
             ImageZoomViewer(imageUrl: img.downloadUrl),
 
             const SizedBox(height: 22),
 
-            // 🔥 Campo de autor
+            // Campo de nombre personalizado (customName)
             const Text(
-              "Autor",
+              "Nombre personalizado",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -123,9 +151,9 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
             const SizedBox(height: 8),
 
             TextField(
-              controller: authorController,
+              controller: nameController,
               decoration: InputDecoration(
-                hintText: "Nombre del autor",
+                hintText: "Nombre para esta imagen",
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -139,9 +167,17 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
               ),
             ),
 
+            const SizedBox(height: 12),
+
+            // Mostrar autor original (solo lectura)
+            Text(
+              "Autor original: ${img.author}",
+              style: const TextStyle(color: Colors.black54),
+            ),
+
             const SizedBox(height: 25),
 
-            // 🔥 Botón guardar cambios
+            // Botón guardar cambios
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -162,7 +198,7 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // ❌ Botón eliminar
+            // Botón eliminar
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(

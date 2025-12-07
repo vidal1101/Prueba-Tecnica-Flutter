@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:prueba_tecnica_flutter/presentation/widgets/widgets.dart';
@@ -7,6 +5,8 @@ import 'package:prueba_tecnica_flutter/presentation/widgets/widgets.dart';
 import '../../../app/di.dart';
 import '../../../presentation/cubits/api/api_cubit.dart';
 import '../../../presentation/cubits/api/api_state.dart';
+import '../../../presentation/cubits/local_images/local_images_cubit.dart';
+import '../../../presentation/cubits/local_images/local_images_state.dart';
 
 class ApiListScreen extends StatelessWidget {
   const ApiListScreen({super.key});
@@ -15,58 +15,90 @@ class ApiListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: di.apiCubit..fetchApiItems(),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          title: const Text("Lista de imágenes", style: TextStyle(color: Colors.white)),
-        ),
+      child: BlocListener<LocalImagesCubit, LocalImagesState>(
+        bloc: di.localImagesCubit,
+        listener: (context, state) {
+          if (state is LocalImageSaved) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.green,
+                content: Text("Imagen guardada exitosamente"),
+              ),
+            );
+          }
 
-        body: BlocBuilder<ApiCubit, ApiState>(
-          builder: (_, state) {
-            if (state is ApiLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.black),
-              );
-            }
+          if (state is LocalImagesError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red,
+                content: Text(state.message),
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
 
-            if (state is ApiError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Error: ${state.message}",
-                        style: const TextStyle(color: Colors.black)),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                      onPressed: () {
-                        context.read<ApiCubit>().fetchApiItems();
-                      },
-                      child: const Text("Reintentar", style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              );
-            }
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            title: const Text(
+              "Lista de imágenes",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
 
-            if (state is ApiLoaded) {
-              final items = state.items;
+          body: BlocBuilder<ApiCubit, ApiState>(
+            builder: (_, state) {
+              if (state is ApiLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.black),
+                );
+              }
 
-              return ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (_, i) {
-                  final item = items[i];
-                  return ApiItemCard(
-                    item: item,
-                  );
-                },
-              );
-            }
+              if (state is ApiError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Error: ${state.message}",
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                        ),
+                        onPressed: () {
+                          context.read<ApiCubit>().fetchApiItems();
+                        },
+                        child: const Text(
+                          "Reintentar",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-            return const SizedBox.shrink();
-          },
+              if (state is ApiLoaded) {
+                final items = state.items;
+
+                return ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (_, i) {
+                    final item = items[i];
+                    return ApiItemCard(
+                      item: item,
+                    );
+                  },
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );

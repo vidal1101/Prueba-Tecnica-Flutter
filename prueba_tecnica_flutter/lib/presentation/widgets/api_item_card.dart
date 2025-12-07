@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
-import 'package:prueba_tecnica_flutter/data/datasources/local/local_db.dart';
+import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
+import 'package:prueba_tecnica_flutter/app/di.dart';
 
 class ApiItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
@@ -8,6 +10,81 @@ class ApiItemCard extends StatelessWidget {
     super.key,
     required this.item,
   });
+
+  Future<void> _showSaveDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Guardar imagen"),
+          content: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Autor: ${item['author']}"),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: controller,
+                      decoration: const InputDecoration(
+                        labelText: "Nombre personalizado",
+                        hintText: "Ej: Foto especial",
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().length < 2) {
+                          return "Debe contener al menos 2 caracteres";
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text("Cancelar"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              child: const Text("Guardar",
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Usuario canceló
+    if (result != true || !context.mounted) return;
+
+    final customName = controller.text.trim();
+
+    final entity = LocalImageEntity(
+      id: item['id'].toString(),
+      author: item['author'],
+      downloadUrl: item['download_url'],
+      customName: customName,
+    );
+
+    /// 🟩 Guardamos con el Cubit
+    /// El resultado será escuchado por BlocListener en ApiListScreen
+    await di.localImagesCubit.saveImage(entity);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +107,6 @@ class ApiItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Imagen
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(14),
@@ -58,44 +134,23 @@ class ApiItemCard extends StatelessWidget {
               children: [
                 Text(
                   item['author'],
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
+
                 const SizedBox(height: 12),
-                SizedBox(
-                  width: 120,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                    ),
-                    onPressed: () async {
-                      final success = await LocalDB.instance.insertImage({
-                        "id": item["id"],
-                        "author": item["author"],
-                        "download_url": item["download_url"],
-                      });
-                  
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: success
-                              ? Colors.green
-                              : Colors.red,
-                          content: Text(
-                            success
-                                ? "Imagen guardada"
-                                : "Ya existe en la base local",
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text("Guardar",
-                        style: TextStyle(color: Colors.white)),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  onPressed: () => _showSaveDialog(context),
+                  child: const Text(
+                    "Guardar",
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],

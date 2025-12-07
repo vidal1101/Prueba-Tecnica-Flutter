@@ -37,26 +37,18 @@ class LocalImagesCubit extends Cubit<LocalImagesState> {
   }
 
   // Actualizar imagen
-  Future<void> updateImage(String id, String newAuthor) async {
+  Future<void> updateImage(String id, String newCustomName) async {
     emit(LocalImagesLoading());
 
-    // Obtener la imagen actual
     final image = await repository.getById(id);
-
     if (image == null) {
-      emit(LocalImagesError("No se encontró la imagen"));
+      emit(LocalImagesError("La imagen no existe"));
       return;
     }
 
-    // Crear copia actualizada
-    final updatedImage = image.copyWith(author: newAuthor);
-
-    // Guardar en BD
-    await repository.update(updatedImage);
-
+    final updated = image.copyWith(customName: newCustomName);
+    await repository.update(updated);
     emit(LocalImageUpdated());
-
-    // Refrescar lista
     await loadImages();
   }
 }

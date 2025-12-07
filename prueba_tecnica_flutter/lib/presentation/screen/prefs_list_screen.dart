@@ -49,10 +49,7 @@ class PrefsListScreen extends StatelessWidget {
                 return const Center(
                   child: Text(
                     "No hay imágenes guardadas",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                 );
               }
@@ -60,9 +57,7 @@ class PrefsListScreen extends StatelessWidget {
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 itemCount: items.length,
-                itemBuilder: (_, i) {
-                  return _SavedImageCard(image: items[i]);
-                },
+                itemBuilder: (_, i) => _SavedImageCard(image: items[i]),
               );
             }
 
@@ -87,19 +82,18 @@ class _SavedImageCard extends StatelessWidget {
           "Confirmar eliminación",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: Text("¿Desea eliminar la imagen de '${image.author}'?"),
+        content: Text("¿Desea eliminar la imagen '${image.customName ?? image.author}'?"),
+
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text("Cancelar"),
           ),
+
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              "Eliminar",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text("Eliminar", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -108,7 +102,8 @@ class _SavedImageCard extends StatelessWidget {
     if (confirm == true) {
       di.localImagesCubit.deleteImage(image.id);
 
-      // ignore: use_build_context_synchronously
+      if (!context.mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Imagen eliminada"),
@@ -121,10 +116,10 @@ class _SavedImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FadeInLeft(
-      delay: const Duration(milliseconds: 300),
+      delay: const Duration(milliseconds: 200),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -138,13 +133,13 @@ class _SavedImageCard extends StatelessWidget {
             ),
           ],
         ),
-      
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                // Imagen
+                // Imagen miniatura
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
@@ -154,21 +149,34 @@ class _SavedImageCard extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-      
+
                 const SizedBox(width: 12),
-      
-                // Texto
+
+                // Texto principal
                 Expanded(
-                  child: Text(
-                    image.author,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Custom name si existe
+                      Text(
+                        image.customName ?? "Sin nombre personalizado",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        "Autor: ${image.author}",
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+                    ],
                   ),
                 ),
-      
+
                 // Botón eliminar
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
@@ -176,10 +184,10 @@ class _SavedImageCard extends StatelessWidget {
                 ),
               ],
             ),
-      
+
             const SizedBox(height: 10),
-      
-            // Botón VER DETALLES
+
+            // Botón para ver detalles
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(

@@ -1,46 +1,50 @@
+
 class LocalImageEntity {
   final String id;
   final String author;
   final String downloadUrl;
+  final String? customName;
 
   LocalImageEntity({
     required this.id,
     required this.author,
     required this.downloadUrl,
+    this.customName,
   });
 
-  // copyWith para crear nuevas instancias modificadas (inmutabilidad)
   LocalImageEntity copyWith({
     String? id,
     String? author,
     String? downloadUrl,
+    String? customName,
   }) {
     return LocalImageEntity(
       id: id ?? this.id,
       author: author ?? this.author,
       downloadUrl: downloadUrl ?? this.downloadUrl,
+      customName: customName ?? this.customName,
     );
   }
 
-  // Convertir a Map para SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'author': author,
       'download_url': downloadUrl,
+      'custom_name': customName,
     };
   }
 
-  // Crear entidad desde Map (SQLite / DB)
   factory LocalImageEntity.fromMap(Map<String, dynamic> map) {
     return LocalImageEntity(
       id: map['id'].toString(),
       author: map['author']?.toString() ?? '',
       downloadUrl: map['download_url']?.toString() ?? '',
+      customName: map['custom_name']?.toString(),
     );
   }
 
   @override
   String toString() =>
-      'LocalImageEntity(id: $id, author: $author, downloadUrl: $downloadUrl)';
+      'LocalImageEntity(id: $id, author: $author, downloadUrl: $downloadUrl, customName: $customName)';
 }

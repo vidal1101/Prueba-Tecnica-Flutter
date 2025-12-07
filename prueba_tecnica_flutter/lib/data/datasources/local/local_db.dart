@@ -20,15 +20,14 @@ class LocalDB {
     final docs = await getApplicationDocumentsDirectory();
     final path = join(docs.path, filePath);
 
-    debugPrint("📁 Database path: $path");
+    debugPrint(" Database path: $path");
 
     return await openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
-        debugPrint("📦 Creating local database...");
+        debugPrint("Creating local database...");
 
-        // Crear tabla de preferencias
         await db.execute('''
         CREATE TABLE preferences (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +37,6 @@ class LocalDB {
         );
       ''');
 
-        // Crear tabla de imágenes guardadas
         await db.execute('''
         CREATE TABLE saved_images (
           id TEXT PRIMARY KEY,
@@ -49,7 +47,26 @@ class LocalDB {
 
         debugPrint("Database structure created successfully!");
       },
+      onOpen: (db) async {
+        // Ejecutar migraciones necesarias (añadir columnas que falten)
+        await _ensureColumnExists(db, 'saved_images', 'custom_name', 'TEXT');
+      },
     );
+  }
+
+  Future<void> _ensureColumnExists(
+      Database db, String table, String column, String columnType) async {
+    try {
+      final info = await db.rawQuery('PRAGMA table_info($table);');
+      final exists = info.any((row) => row['name'] == column);
+      if (!exists) {
+        debugPrint(" Adding missing column '$column' to table '$table'");
+        await db.execute('ALTER TABLE $table ADD COLUMN $column $columnType;');
+        debugPrint("Column '$column' added");
+      }
+    } catch (e) {
+      debugPrint("❌ Error ensuring column exists: $e");
+    }
   }
 
   // ==============================
@@ -117,27 +134,26 @@ class LocalDB {
 
   Future<bool> insertImage(Map<String, dynamic> image) async {
     final db = await instance.database;
-
     try {
-      // Verificar si existe
       final res = await db.query(
         'saved_images',
         where: 'id = ?',
         whereArgs: [image['id']],
         limit: 1,
       );
+      if (res.isNotEmpty) return false;
 
-      if (res.isNotEmpty) {
-        debugPrint("⚠️ Image already exists (id: ${image['id']})");
-        return false;
-      }
-
-      await db.insert('saved_images', image);
-      debugPrint("✔ Image inserted (id: ${image['id']})");
-
+      // Asegurarse de que el map tenga las claves que queremos (no obligatorio)
+      final row = {
+        'id': image['id'],
+        'author': image['author'],
+        'download_url': image['download_url'],
+        'custom_name': image['custom_name'], 
+      };
+      await db.insert('saved_images', row);
       return true;
     } catch (e) {
-      debugPrint("❌ Error inserting image: $e");
+      debugPrint(" Error inserting image: $e");
       return false;
     }
   }
@@ -151,7 +167,7 @@ class LocalDB {
         whereArgs: [id],
       );
     } catch (e) {
-      debugPrint("❌ Error deleting image: $e");
+      debugPrint(" Error deleting image: $e");
       return -1;
     }
   }
@@ -167,7 +183,7 @@ class LocalDB {
       );
       return res.isNotEmpty ? res.first : null;
     } catch (e) {
-      debugPrint("❌ Error getting image by ID: $e");
+      debugPrint(" Error getting image by ID: $e");
       return null;
     }
   }
