@@ -2,6 +2,10 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/preference_item.dart';
 
+
+/// PreferenceState
+/// 
+/// This class represents the state of the preferences.
 abstract class PreferenceState extends Equatable {
   @override
   List<Object?> get props => [];

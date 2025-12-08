@@ -2,6 +2,10 @@
 
 import 'package:flutter/material.dart';
 
+
+/// ImageZoomViewer
+/// 
+/// This class represents a zoomable image viewer.
 class ImageZoomViewer extends StatelessWidget {
   final String imageUrl;
 

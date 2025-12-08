@@ -3,10 +3,16 @@ import '../datasources/local/local_db.dart';
 import '../../domain/entities/preference_item.dart';
 import '../../domain/repositories/items_repository.dart';
 
+/// ItemsRepositoryImpl
+/// 
+/// This class implements the ItemsRepository interface and provides methods
+/// to interact with the API and the local database.
 class ItemsRepositoryImpl extends ItemsRepository {
   final ApiClient apiClient;
   final LocalDB db;
 
+
+  /// ItemsRepositoryImpl constructor.
   ItemsRepositoryImpl({
     required this.apiClient,
     required this.db,

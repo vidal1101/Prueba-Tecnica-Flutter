@@ -1,9 +1,15 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:page_transition/page_transition.dart';
 import 'package:prueba_tecnica_flutter/presentation/screen/home_screen.dart';
 
+
+/// SplashScreen
+/// 
+/// This class represents the splash screen of the application.
+/// It displays a fade-in animation and a text message.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:prueba_tecnica_flutter/app/di.dart';
 
+/// ApiItemCard
+/// Card responsive con mediaquery, evitando overflow e imágenes rotas.
 class ApiItemCard extends StatelessWidget {
   final Map<String, dynamic> item;
 
@@ -18,28 +20,40 @@ class ApiItemCard extends StatelessWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
+        final size = MediaQuery.of(ctx).size;
+        final isSmall = size.width < 360;
+
         return AlertDialog(
-          title: const Text("Guardar imagen"),
+          title: Text(
+            "Guardar imagen",
+            style: TextStyle(fontSize: isSmall ? 18 : 20),
+          ),
           content: SingleChildScrollView(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: BoxConstraints(
+                maxWidth: size.width * 0.9,
+              ),
               child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("Autor: ${item['author']}"),
-                    const SizedBox(height: 12),
+                    Text(
+                      "Autor: ${item['author']}",
+                      style: TextStyle(fontSize: isSmall ? 13 : 15),
+                    ),
+
+                    SizedBox(height: isSmall ? 10 : 14),
+
                     TextFormField(
                       controller: controller,
                       decoration: const InputDecoration(
                         labelText: "Nombre personalizado",
-                        hintText: "Ej: Foto especial",
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().length < 2) {
-                          return "Debe contener al menos 2 caracteres";
+                          return "Debe tener al menos 2 caracteres";
                         }
                         return null;
                       },
@@ -49,6 +63,7 @@ class ApiItemCard extends StatelessWidget {
               ),
             ),
           ),
+
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -61,16 +76,17 @@ class ApiItemCard extends StatelessWidget {
                   Navigator.pop(ctx, true);
                 }
               },
-              child: const Text("Guardar",
-                  style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "Guardar",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
       },
     );
 
-    // Usuario canceló
-    if (result != true || !context.mounted) return;
+    if (result != true) return;
 
     final customName = controller.text.trim();
 
@@ -81,17 +97,27 @@ class ApiItemCard extends StatelessWidget {
       customName: customName,
     );
 
-    /// 🟩 Guardamos con el Cubit
-    /// El resultado será escuchado por BlocListener en ApiListScreen
     await di.localImagesCubit.saveImage(entity);
   }
 
   @override
   Widget build(BuildContext context) {
-    const fallbackImage = "https://picsum.photos/200";
+    final size = MediaQuery.of(context).size;
+
+    final double imgWidth = size.width * 0.28;
+    final double imgHeight = size.width * 0.23;
+
+    final bool isSmall = size.width < 360;
+    final double fontSizeTitle = isSmall ? 14 : 16;
+    final double buttonFontSize = isSmall ? 12 : 14;
+    final double cardPadding = isSmall ? 10 : 14;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(
+        horizontal: isSmall ? 10 : 16,
+        vertical: isSmall ? 6 : 8,
+      ),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -99,58 +125,82 @@ class ApiItemCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Colors.black12,
-            spreadRadius: 1,
             blurRadius: 4,
             offset: Offset(0, 2),
           ),
         ],
       ),
+
       child: Row(
         children: [
+          /// =======================
+          ///    Imagen segura
+          /// =======================
           ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(14),
-              bottomLeft: Radius.circular(14),
-            ),
-            child: Image.network(
-              item['download_url'],
-              width: 100,
-              height: 90,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Image.network(
-                fallbackImage,
-                width: 100,
-                height: 90,
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: imgWidth,
+              height: imgHeight,
+              child: Image.network(
+                item['download_url'],
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade300,
+                    child: Icon(
+                      Icons.broken_image,
+                      size: imgHeight * 0.5,
+                      color: Colors.grey.shade700,
+                    ),
+                  );
+                },
               ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          SizedBox(width: isSmall ? 10 : 14),
 
+          /// =======================
+          ///      Información
+          /// =======================
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item['author'],
-                  style: const TextStyle(
-                    fontSize: 16,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: fontSizeTitle,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: isSmall ? 10 : 14),
 
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                  onPressed: () => _showSaveDialog(context),
-                  child: const Text(
-                    "Guardar",
-                    style: TextStyle(color: Colors.white),
+                /// Botón responsive
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isSmall ? 8 : 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => _showSaveDialog(context),
+                    child: Text(
+                      "Guardar",
+                      style: TextStyle(
+                        fontSize: buttonFontSize,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],

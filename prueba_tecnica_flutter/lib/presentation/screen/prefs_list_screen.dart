@@ -6,12 +6,20 @@ import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_cubit.dart';
 import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_state.dart';
 import 'package:prueba_tecnica_flutter/app/routes.dart';
+import 'package:prueba_tecnica_flutter/presentation/widgets/widgets.dart';
 
 class PrefsListScreen extends StatelessWidget {
   const PrefsListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmall = size.width < 350;
+
+    final imageSize = isSmall ? 70.0 : 90.0;
+    final cardPadding = isSmall ? 10.0 : 14.0;
+    final cardMargin = isSmall ? 10.0 : 16.0;
+
     return BlocProvider.value(
       value: di.localImagesCubit..loadImages(),
       child: Scaffold(
@@ -23,6 +31,20 @@ class PrefsListScreen extends StatelessWidget {
             "Imágenes Guardadas",
             style: TextStyle(color: Colors.white),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search, color: Colors.white),
+              onPressed: () async {
+                final result = await showSearch(
+                  context: context,
+                  delegate: PrefsSearchDelegate(),
+                );
+                if (result != null) {
+                  di.localImagesCubit.loadImages();
+                }
+              },
+            ),
+          ],
         ),
 
         body: BlocBuilder<LocalImagesCubit, LocalImagesState>(
@@ -55,9 +77,14 @@ class PrefsListScreen extends StatelessWidget {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+                padding: EdgeInsets.symmetric(vertical: cardPadding),
                 itemCount: items.length,
-                itemBuilder: (_, i) => _SavedImageCard(image: items[i]),
+                itemBuilder: (_, i) => _SavedImageCard(
+                  image: items[i],
+                  imageSize: imageSize,
+                  cardMargin: cardMargin,
+                  cardPadding: cardPadding,
+                ),
               );
             }
 
@@ -71,8 +98,16 @@ class PrefsListScreen extends StatelessWidget {
 
 class _SavedImageCard extends StatelessWidget {
   final LocalImageEntity image;
+  final double imageSize;
+  final double cardMargin;
+  final double cardPadding;
 
-  const _SavedImageCard({required this.image});
+  const _SavedImageCard({
+    required this.image,
+    required this.imageSize,
+    required this.cardMargin,
+    required this.cardPadding,
+  });
 
   Future<void> _confirmDelete(BuildContext context) async {
     final confirm = await showDialog<bool>(
@@ -82,18 +117,18 @@ class _SavedImageCard extends StatelessWidget {
           "Confirmar eliminación",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: Text("¿Desea eliminar la imagen '${image.customName ?? image.author}'?"),
-
+        content:
+            Text("¿Desea eliminar la imagen '${image.customName ?? image.author}'?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text("Cancelar"),
           ),
-
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Eliminar", style: TextStyle(color: Colors.white)),
+            child:
+                const Text("Eliminar", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -118,8 +153,8 @@ class _SavedImageCard extends StatelessWidget {
     return FadeInLeft(
       delay: const Duration(milliseconds: 200),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.all(14),
+        margin: EdgeInsets.symmetric(horizontal: cardMargin, vertical: 8),
+        padding: EdgeInsets.all(cardPadding),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -139,46 +174,54 @@ class _SavedImageCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // Imagen miniatura
+                /// 🔹 Miniatura con fallback y tamaño adaptativo
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
                     image.downloadUrl,
-                    width: 90,
-                    height: 90,
+                    width: imageSize,
+                    height: imageSize,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: imageSize,
+                      height: imageSize,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.broken_image, size: 40),
+                    ),
                   ),
                 ),
 
                 const SizedBox(width: 12),
 
-                // Texto principal
+                /// 🔹 Texto + botón delete adaptables
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Custom name si existe
                       Text(
                         image.customName ?? "Sin nombre personalizado",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-
                       const SizedBox(height: 4),
-
                       Text(
                         "Autor: ${image.author}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.black54),
                       ),
                     ],
                   ),
                 ),
 
-                // Botón eliminar
                 IconButton(
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => _confirmDelete(context),
                 ),
@@ -187,7 +230,7 @@ class _SavedImageCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Botón para ver detalles
+            /// 🔹 Botón ver detalles
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(

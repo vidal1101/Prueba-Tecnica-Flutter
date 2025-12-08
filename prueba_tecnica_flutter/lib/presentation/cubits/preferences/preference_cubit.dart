@@ -5,6 +5,10 @@ import '../../../domain/entities/preference_item.dart';
 import '../../../domain/repositories/items_repository.dart';
 import 'preference_state.dart';
 
+
+/// PreferenceCubit
+/// 
+/// This class represents the state management for the preferences.
 class PreferenceCubit extends Cubit<PreferenceState> {
   final ItemsRepository repository;
 

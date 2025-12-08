@@ -1,6 +1,9 @@
 
 import '../entities/preference_item.dart';
 
+/// ItemsRepository
+/// 
+/// This interface defines methods for interacting with the API and the local database.
 abstract class ItemsRepository {
   // API Remote
   Future<List<dynamic>> fetchRemoteItems();

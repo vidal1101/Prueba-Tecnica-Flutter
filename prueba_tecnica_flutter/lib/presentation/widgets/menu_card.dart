@@ -1,6 +1,10 @@
 
 import 'package:flutter/material.dart';
 
+
+/// MenuCard
+/// 
+/// This class represents a card for a menu item. It displays an icon, title, and subtitle.
 class MenuCard extends StatelessWidget {
   
   final String title;

@@ -5,7 +5,10 @@ import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_cubit.dart';
 import 'package:prueba_tecnica_flutter/presentation/cubits/local_images/local_images_state.dart';
 import 'package:prueba_tecnica_flutter/presentation/widgets/image_zoom_viewer.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
+/// PrefsDetailScreen
+/// Pantalla de detalle para una imagen guardada en la base local.
 class PrefsDetailScreen extends StatefulWidget {
   final LocalImageEntity image;
 
@@ -18,15 +21,28 @@ class PrefsDetailScreen extends StatefulWidget {
 class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
   late TextEditingController nameController;
 
+  bool hasConnection = true; // Nuevo estado para red
+
   @override
   void initState() {
     super.initState();
-    // Inicializar con customName si existe, si no mostrar author como ayuda
     nameController = TextEditingController(
       text: widget.image.customName?.isNotEmpty == true
           ? widget.image.customName
           : widget.image.author,
     );
+
+    _checkConnection();
+  }
+
+  Future<void> _checkConnection() async {
+    final res = await Connectivity().checkConnectivity();
+    if (!mounted) return;
+
+    setState(() {
+      // ignore: unrelated_type_equality_checks
+      hasConnection = res != ConnectivityResult.none;
+    });
   }
 
   @override
@@ -48,9 +64,7 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
       return;
     }
 
-    // Pedimos al cubit que actualice el customName (no el author)
     di.localImagesCubit.updateImage(widget.image.id, newName);
-    // No navegamos ni mostramos snack acá: lo manejará el BlocListener abajo.
   }
 
   Future<void> _confirmDelete() async {
@@ -61,7 +75,7 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
           "Confirmar eliminación",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: Text("¿Desea eliminar esta imagen?"),
+        content: const Text("¿Desea eliminar esta imagen?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -78,7 +92,6 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
 
     if (confirm == true) {
       di.localImagesCubit.deleteImage(widget.image.id);
-      // BlocListener escucha LocalImageDeleted y hará el pop + snackbar.
     }
   }
 
@@ -89,7 +102,6 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
     return BlocListener<LocalImagesCubit, LocalImagesState>(
       bloc: di.localImagesCubit,
       listener: (context, state) {
-        // Manejar resultado de update
         if (state is LocalImageUpdated) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -98,10 +110,9 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
               backgroundColor: Colors.black87,
             ),
           );
-          Navigator.pop(context); // volver al listado (ya refrescará por cubit)
+          Navigator.pop(context);
         }
 
-        // Manejar eliminación
         if (state is LocalImageDeleted) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -110,10 +121,9 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
               backgroundColor: Colors.black87,
             ),
           );
-          Navigator.pop(context); // volver al listado
+          Navigator.pop(context);
         }
 
-        // Manejar errores
         if (state is LocalImagesError) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
@@ -133,12 +143,39 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Imagen con zoom
-            ImageZoomViewer(imageUrl: img.downloadUrl),
+            // =============================
+            //   Imagen o estado sin red
+            // =============================
+            hasConnection
+                ? ImageZoomViewer(imageUrl: img.downloadUrl)
+                : Container(
+                    height: 260,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.wifi_off, size: 60, color: Colors.red),
+                          SizedBox(height: 12),
+                          Text(
+                            "Sin conexión",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
             const SizedBox(height: 22),
 
-            // Campo de nombre personalizado (customName)
+            // Nombre personalizado
             const Text(
               "Nombre personalizado",
               style: TextStyle(
@@ -147,7 +184,6 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
                 color: Colors.black,
               ),
             ),
-
             const SizedBox(height: 8),
 
             TextField(
@@ -169,7 +205,7 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
 
             const SizedBox(height: 12),
 
-            // Mostrar autor original (solo lectura)
+            // Autor original
             Text(
               "Autor original: ${img.author}",
               style: const TextStyle(color: Colors.black54),
@@ -177,7 +213,7 @@ class _PrefsDetailScreenState extends State<PrefsDetailScreen> {
 
             const SizedBox(height: 25),
 
-            // Botón guardar cambios
+            // Botón guardar
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

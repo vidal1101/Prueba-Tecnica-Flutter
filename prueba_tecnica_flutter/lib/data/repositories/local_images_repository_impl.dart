@@ -3,6 +3,10 @@ import 'package:prueba_tecnica_flutter/data/datasources/local/local_db.dart';
 import 'package:prueba_tecnica_flutter/domain/entities/local_image_entity.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// LocalImagesRepositoryImpl
+/// 
+/// This class implements the LocalImagesRepository interface and provides methods
+/// to interact with the local database.
 class LocalImagesRepositoryImpl {
   final LocalDB db;
 
@@ -63,6 +67,12 @@ class LocalImagesRepositoryImpl {
       where: 'id = ?',
       whereArgs: [image.id],
     );
+  }
+
+  /// Searches for images by text.
+  Future<List<LocalImageEntity>> search(String query) async {
+    final maps = await db.queryImagesByText(query);
+    return maps.map((m) => LocalImageEntity.fromMap(m)).toList();
   }
 
 

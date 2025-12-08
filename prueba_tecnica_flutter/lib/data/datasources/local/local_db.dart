@@ -4,6 +4,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// Local DB
+///
+/// This class is a singleton that manages the local database.
+/// It provides methods to perform CRUD operations on the database.
+///
 class LocalDB {
   static final LocalDB instance = LocalDB._init();
   static Database? _database;
@@ -16,6 +21,7 @@ class LocalDB {
     return _database!;
   }
 
+  /// Initializes the database and creates the necessary tables.
   Future<Database> _initDB(String filePath) async {
     final docs = await getApplicationDocumentsDirectory();
     final path = join(docs.path, filePath);
@@ -24,7 +30,7 @@ class LocalDB {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         debugPrint("Creating local database...");
 
@@ -41,7 +47,8 @@ class LocalDB {
         CREATE TABLE saved_images (
           id TEXT PRIMARY KEY,
           author TEXT,
-          download_url TEXT
+          download_url TEXT, 
+          custom_name TEXT
         );
       ''');
 
@@ -54,6 +61,7 @@ class LocalDB {
     );
   }
 
+  /// Ensures that a column exists in a table.
   Future<void> _ensureColumnExists(
       Database db, String table, String column, String columnType) async {
     try {
@@ -65,7 +73,7 @@ class LocalDB {
         debugPrint("Column '$column' added");
       }
     } catch (e) {
-      debugPrint("❌ Error ensuring column exists: $e");
+      debugPrint(" Error ensuring column exists: $e");
     }
   }
 
@@ -73,26 +81,29 @@ class LocalDB {
 //  PREFERENCES CRUD
 // ==============================
 
+  /// Gets all preferences from the database.
   Future<List<Map<String, dynamic>>> getAllPrefs() async {
     final db = await instance.database;
     try {
       return await db.query('preferences');
     } catch (e) {
-      debugPrint("❌ Error getting preferences: $e");
+      debugPrint("Error getting preferences: $e");
       return [];
     }
   }
 
+  /// Inserts a preference into the database.
   Future<int> insertPref(Map<String, dynamic> pref) async {
     final db = await instance.database;
     try {
       return await db.insert('preferences', pref);
     } catch (e) {
-      debugPrint("❌ Error inserting into preferences: $e");
+      debugPrint(" Error inserting into preferences: $e");
       return -1;
     }
   }
 
+  /// Updates a preference in the database.
   Future<int> updatePref(Map<String, dynamic> pref) async {
     final db = await instance.database;
     try {
@@ -103,11 +114,12 @@ class LocalDB {
         whereArgs: [pref['id']],
       );
     } catch (e) {
-      debugPrint("❌ Error updating preferences: $e");
+      debugPrint(" Error updating preferences: $e");
       return -1;
     }
   }
 
+  /// Deletes a preference from the database.
   Future<int> deletePref(int id) async {
     final db = await instance.database;
     try {
@@ -117,21 +129,23 @@ class LocalDB {
         whereArgs: [id],
       );
     } catch (e) {
-      debugPrint("❌ Error deleting from preferences: $e");
+      debugPrint("Error deleting from preferences: $e");
       return -1;
     }
   }
 
+  /// Gets all saved images from the database.
   Future<List<Map<String, dynamic>>> getAllImages() async {
     final db = await instance.database;
     try {
       return await db.query('saved_images');
     } catch (e) {
-      debugPrint("❌ Error getting saved_images: $e");
+      debugPrint(" Error getting saved_images: $e");
       return [];
     }
   }
 
+  /// Inserts a saved image into the database.
   Future<bool> insertImage(Map<String, dynamic> image) async {
     final db = await instance.database;
     try {
@@ -148,7 +162,7 @@ class LocalDB {
         'id': image['id'],
         'author': image['author'],
         'download_url': image['download_url'],
-        'custom_name': image['custom_name'], 
+        'custom_name': image['custom_name'],
       };
       await db.insert('saved_images', row);
       return true;
@@ -158,6 +172,7 @@ class LocalDB {
     }
   }
 
+  /// Deletes a saved image from the database.
   Future<int> deleteImage(String id) async {
     final db = await instance.database;
     try {
@@ -172,6 +187,7 @@ class LocalDB {
     }
   }
 
+  /// Gets a saved image by its ID.
   Future<Map<String, dynamic>?> getImageById(String id) async {
     final db = await instance.database;
     try {
@@ -183,11 +199,29 @@ class LocalDB {
       );
       return res.isNotEmpty ? res.first : null;
     } catch (e) {
-      debugPrint(" Error getting image by ID: $e");
+      debugPrint(" Error getting image by ID: $e"); 
       return null;
     }
   }
 
+  /// Searches for images by text.
+  Future<List<Map<String, dynamic>>> queryImagesByText(String q) async {
+    final db = await instance.database;
+    try {
+      final likeQuery = '%${q.trim()}%';
+      final res = await db.query(
+        'saved_images',
+       where: 'author LIKE ? OR custom_name LIKE ? OR download_url LIKE ?',
+        whereArgs: [likeQuery, likeQuery, likeQuery],
+      );
+      return res;
+    } catch (e) {
+      debugPrint("Error searching saved_images: $e");
+      return [];
+    }
+  }
+
+  /// Closes the database connection.
   Future close() async {
     final db = await instance.database;
     db.close();

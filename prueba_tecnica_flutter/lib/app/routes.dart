@@ -11,7 +11,6 @@ class AppRoutes {
 
   // PREFS (SQLite)
   static const prefsList = '/prefs';
-  static const prefsNew = '/prefs/new';
   static const prefsDetail = '/prefs/detail';
 }
 
@@ -36,8 +35,6 @@ class AppRouter {
       case AppRoutes.prefsList:
         return _page(const PrefsListScreen());
 
-      case AppRoutes.prefsNew:
-        return _page(const PrefsNewScreen());
 
       case AppRoutes.prefsDetail:
         final item = settings.arguments as LocalImageEntity;

@@ -22,6 +22,9 @@ dependencies:
 
   animate_do: ^3.3.4
   animated_splash_screen: ^1.3.0
+  connectivity_plus: ^6.0.0
+
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -30,10 +33,26 @@ dev_dependencies:
  
   flutter_lints: ^4.0.0
 
+flutter_icons:
+  android: true        
+  ios: true
+  image_path: "assets/icon/iconapp.png"
+
+  # Recomendado para Android adaptive icon:
+  adaptive_icon_background: "#000000"     # fondo sólido
+  adaptive_icon_foreground: "assets/icon/iconapp.png"
+
+  min_sdk_android: 21
+  remove_alpha_ios: true
+
 
 
 flutter:
 
   uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/icon/
 
   

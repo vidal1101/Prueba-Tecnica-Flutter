@@ -6,6 +6,8 @@ class ApiClient {
 
   ApiClient(this.dio);
 
+
+  // API call to get a list of images
   Future<List<dynamic>> getItems() async {
     try {
       final response = await dio.get("https://picsum.photos/v2/list");

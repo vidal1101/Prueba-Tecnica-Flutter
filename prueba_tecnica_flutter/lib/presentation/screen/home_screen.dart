@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:prueba_tecnica_flutter/app/routes.dart';
 import 'package:prueba_tecnica_flutter/presentation/widgets/widgets.dart';
 
-
+/// HomeScreen
+/// 
+/// This class represents the home screen of the application.
+/// It displays a list of menu items with fade-in animations.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 

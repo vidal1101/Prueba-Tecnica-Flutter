@@ -1,213 +1,268 @@
 
-Prueba Técnica Flutter — Gestión de Ítems desde API + Persistencia Local
+# 📱 Prueba Técnica Flutter — Gestión de Ítems desde API + Persistencia Local
 
-Este proyecto es una aplicación móvil desarrollada en Flutter que permite consultar ítems desde una API pública, asignarles un nombre personalizado y almacenarlos en una base de datos local para su posterior gestión.
+Esta aplicación móvil desarrollada en **Flutter** permite:
 
-Incluye funcionalidades de listado, creación, edición, visualización de detalles y eliminación de elementos, además del uso de Cubit como gestor de estado.
+- Consultar ítems desde una **API pública**
+- Asignarles un **nombre personalizado**
+- Guardarlos en una **base de datos local SQLite**
+- Gestionarlos mediante CRUD completo
+- Visualizar detalles y editar elementos
+- Usar **Cubit (BloC)** como gestor de estado
 
-Características Principales
-✔ 1. Consumo de API pública
+Incluye manejo de conectividad, diseño responsive y documentación completa.
 
-La app consulta imágenes desde el endpoint público de Picsum Photos, mapeando la respuesta JSON a modelos internos y gestionando estados de carga, éxito y error mediante ApiCubit.
+---
 
-✔ 2. Guardado local con nombre personalizado
+# 🚀 Instalación y Ejecución
 
-El usuario puede seleccionar un ítem de la API y asignar un nombre personalizado, que se almacena en SQLite mediante un LocalImagesCubit.
-
-✔ 3. CRUD completo en base local
-
-Se permite:
-
-Crear (guardar elemento personalizado)
-
-Leer (listar favoritos)
-
-Actualizar (editar nombre personalizado)
-
-Eliminar (con confirmación)
-
-✔ 4. Pantallas incluidas
-
-/api-list – Lista de elementos desde la API
-
-/prefs – Lista de elementos almacenados
-
-/prefs/:id – Vista de detalle, edición y eliminación
-
-Pantalla de carga global
-
-Pantalla de error global
-
-✔ 5. Gestión de estado con Cubit
-
-Se utilizan dos cubits principales:
-
-ApiCubit → Manejo de API
-
-LocalImagesCubit → Manejo de elementos locales
-
-Todos los cubits implementan estados:
-loading, success, error.
-
-✔ 6. Interfaz responsive
-
-Toda la UI está diseñada con padding, márgenes y tamaños relativos para adaptarse a diferentes dispositivos.
-
-Tecnologías & Paquetes Utilizados
-Flutter versión:
-3.24.x
-Utilizada intencionalmente por compatibilidad con otros proyectos activos.
-
-Dependencias principales:
-flutter_bloc: ^9.1.1        # Gestión de estado con Cubit
-dio: ^5.9.0                 # Cliente HTTP
-equatable: ^2.0.7           # Comparación eficiente para estados y modelos
-
-sqflite: ^2.3.1             # Base de datos local SQLite
-path_provider: ^2.1.5       # Acceso a directorios de la app
-path: ^1.8.3                # Manipulación de rutas
-
-animate_do: ^3.3.4          # Animaciones de entrada
-animated_splash_screen: ^1.3.0  # Splash inicial
-
-
-Dependencias de desarrollo:
-flutter_lints: ^4.0.0       # Reglas de clean code
-flutter_test:               # Testing integrado
-
-
-
-Estructura del Proyecto
-
-La arquitectura está separada en capas claras y mantenibles:
-lib/
-│
-├── app/
-│   ├── di.dart                # Inyección de dependencias
-│   ├── routes.dart            # Rutas nombradas
-│   └── app.dart               # Inicio de la aplicación
-│
-├── data/
-│   ├── datasources/
-│   │   ├── api_client         # Llamadas a API
-│   │   └── local/             # SQLite (LocalDB)
-│   ├── repositories/          # Contratos abstractos
-│
-├── domain/
-│   ├── entities/              # Entidades limpias
-│   └── repositories/          # Contratos abstractos
-│
-├── presentation/
-│   ├── cubits/
-│   │   ├── api/               # ApiCubit + ApiState
-│   │   └── local_images/      # LocalImagesCubit + estados
-│       └── preferences/       # PreferencesCubit + estados
-│   ├── screens/               # Todas las pantallas principales
-│   ├── widgets/               # Widgets personalizados reutilizables
-│
-└── main.dart
-
-
-
-Instalación y Ejecución
-
-Clonar el repositorio
-
+## 1. Clonar el repositorio
+```bash
 git clone https://github.com/vidal1101/Prueba-Tecnica-Flutter
 cd Prueba-Tecnica-Flutter
 
-
-Instalar dependencias
-
+2. Instalar dependencias
 flutter pub get
 
-
-Ejecutar el proyecto
-
+3. Ejecutar el proyecto
 flutter run
 
-Arquitectura & Decisiones Técnicas
-✔ Uso de Cubit (Bloc)
-
-Se eligió Cubit por ser:
-
-Más liviano que Bloc
-
-Suficiente para flujos controlados
-
-Fácil de probar
-
-Fácil de mantener en 72h
-
-✔ Persistencia con SQLite (sqflite)
-
-Justificación:
-
-Es la solución más estable y nativa para persistencia estructurada
-
-Soporta CRUD completo
-
-Ideal para almacenar colecciones tipo "favoritos"
-
-✔ API con Dio
-
-Ventajas:
-
-Manejo integrado de timeout, interceptors, cancel tokens
-
-Más robusto que HttpClient nativo
-
-✔ Arquitectura por capas (Domain / Data / Presentation)
-
-Beneficios:
-
-Permite escalar el proyecto
-
-Evita acoplamiento fuerte con infraestructura
-
-Facilita pruebas unitarias y mantenimiento
+4. (Opcional) Regenerar ícono del launcher
+flutter pub run flutter_launcher_icons
 
 
-Estados implementados
+Nota: El proyecto se probó únicamente en Android, debido a que no poseo una Mac para generar o depurar builds de iOS.
+
+🏗️ Arquitectura del Proyecto
+
+Arquitectura basada en Clean Architecture simplificada:
+
+lib/
+│
+├── app/
+│   ├── app.dart
+│   ├── di.dart
+│   └── routes.dart
+│
+├── data/
+│   ├── datasources/
+│   │   ├── api_client.dart
+│   │   └── local/
+│   │       └── local_db.dart
+│   ├── repositories/
+│       ├── items_repository_impl.dart
+│       └── local_images_repository_impl.dart
+│
+├── domain/
+│   ├── entities/
+│   └── repositories/
+│
+├── presentation/
+│   ├── cubits/
+│   │   ├── api/
+│   │   └── local_images/
+│   ├── screens/
+│   └── widgets/
+│
+└── main.dart
+
+📌 Funcionalidades Principales
+✔ 1. Consumo de API pública
+
+Se consultan imágenes desde Picsum Photos, con manejo de:
+
+Loading
+
+Error
+
+Sin conexión
+
+Reintento
+
+✔ 2. Guardado local con nombre personalizado
+
+El usuario selecciona un ítem y puede asignarle un nombre propio.
+
+✔ 3. CRUD completo
+
+Crear: guardar item personalizado
+
+Leer: ver lista local
+
+Actualizar: editar nombre
+
+Eliminar: confirmación y borrado
+
+✔ 4. Búsqueda avanzada
+
+Implementado con SearchDelegate, buscando por:
+
+custom_name
+
+author
+
+download_url
+
+✔ 5. Pantallas requeridas
+
+/api-list
+
+/prefs
+
+/prefs/detail
+
+Pantalla de splash
+
+Pantallas de error y carga
+
+Vista de detalle con zoom interactivo
+
+✔ 6. Manejo de conectividad
+
+Antes de consumir API se valida conexión a internet.
+Si no hay red se muestra un mensaje con opción de reintento.
+
+✔ 7. UI Responsive
+
+Toda la UI usa medidas dinámicas mediante:
+
+MediaQuery
+
+Layout adaptable
+
+Widgets escalables
+
+Placeholders cuando no hay internet para evitar imágenes rotas
+
+📦 Dependencias Principales
+Producción
+
+flutter_bloc — Cubit para manejo de estado
+
+dio — Cliente HTTP
+
+sqflite — Base de datos local
+
+path_provider — Directorios nativos
+
+path — Manipulación de rutas
+
+equatable — Mejor comparación de estados
+
+animate_do — Animaciones
+
+animated_splash_screen — Pantalla de inicio
+
+Desarrollo
+
+flutter_lints
+
+flutter_test
+
+🧠 Cubits Implementados
 ApiCubit
+
+ApiInitial
+
 ApiLoading
+
 ApiLoaded
+
 ApiError
 
+ApiNoConnection
+
 LocalImagesCubit
+
+LocalImagesInitial
+
 LocalImagesLoading
+
 LocalImagesLoaded
+
 LocalImageSaved
+
 LocalImagesError
 
- UI — Puntos destacables
+LocalImageUpdated
 
-Animaciones suaves con animate_do
+LocalImageDeleted
 
-Dialog de nombre personalizado con validaciones
+🗄️ Persistencia Local (SQLite)
 
-Responsive layout
+Estructura de tabla:
 
-Manejo correcto de errores visuales
+saved_images
 
-Vista detalle con zoom interactivo
+id TEXT PRIMARY KEY
+author TEXT
+download_url TEXT
+custom_name TEXT
 
-Notas Finales
 
-Este proyecto cumple con:
+Incluye migraciones automáticas para agregar columnas faltantes cuando se abre la base de datos.
 
-Clean Code
+🎨 UI — Detalles Importantes
 
-Gestión de estado con Cubit
+Imágenes con fallback si no hay internet
 
-Persistencia local confiable
+Diálogos con validación
 
-Manejo de API
+Animaciones de entrada
 
-CRUD completo
+Diseño responsive con MediaQuery
 
-Navegación con rutas nombradas
+Vista de detalle con zoom interactivo
 
-Documentación mínima requerida
+Botones consistentes y accesibles
 
-Diseñado y desarrollado por Rodrigo Vidal
+🔎 Búsqueda Inteligente
+
+Consultas SQL en tiempo real:
+
+SELECT * FROM saved_images
+WHERE author LIKE ? 
+OR custom_name LIKE ?
+OR download_url LIKE ?
+
+
+Incluye:
+
+Vista previa del resultado
+
+Navegación al detalle
+
+Manejo de errores
+
+Resultados interactivos
+
+⚙️ Decisiones Técnicas
+✔ Cubit en lugar de Bloc
+
+Más simple, más rápido de implementar y suficiente para los flujos requeridos.
+
+✔ SQLite (sqflite) para persistencia
+
+Permite CRUD estructurado, ideal para persistir datos locales sin conexión.
+
+✔ Dio como cliente HTTP
+
+Robusto, configurable, rápido, con soporte para interceptores y cancelación.
+
+✔ Arquitectura por capas
+
+Separa responsabilidades, facilita pruebas y mejora mantenibilidad.
+
+🙋‍♂️ Sobre el Autor
+
+Rodrigo Vidal
+Desarrollador de Software — Costa Rica
+
+Estoy en constante aprendizaje y con entusiasmo por aportar al equipo.
+Agradezco la oportunidad de demostrar mis habilidades y con gusto seguiré aprendiendo y contribuyendo en lo que sea necesario.
+
+📝 Licencia
+
+Proyecto desarrollado únicamente con fines evaluativos para prueba técnica.
+
+

@@ -1,6 +1,8 @@
-
 import 'package:equatable/equatable.dart';
 
+/// ApiState
+///
+/// Represents the different states of the API request lifecycle.
 abstract class ApiState extends Equatable {
   @override
   List<Object?> get props => [];
@@ -23,6 +25,15 @@ class ApiError extends ApiState {
   final String message;
 
   ApiError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ApiNoConnection extends ApiState {
+  final String message;
+
+  ApiNoConnection(this.message);
 
   @override
   List<Object?> get props => [message];

@@ -1,4 +1,9 @@
 
+
+/// PreferenceItem
+/// 
+/// This class represents a preference item with properties for ID, title, custom name, and image URL.
+///  
 class PreferenceItem {
   final int? id;
   final String title;
@@ -12,6 +17,8 @@ class PreferenceItem {
     this.imageUrl,
   });
 
+
+  /// Converts the PreferenceItem to a Map.
   factory PreferenceItem.fromMap(Map<String, dynamic> json) {
     return PreferenceItem(
       id: json['id'] as int?,
@@ -21,6 +28,7 @@ class PreferenceItem {
     );
   }
 
+  /// Overrides the equality operator.
   Map<String, dynamic> toMap() {
     return {
       'id': id,

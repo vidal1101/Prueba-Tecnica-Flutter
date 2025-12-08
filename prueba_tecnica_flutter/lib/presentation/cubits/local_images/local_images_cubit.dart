@@ -3,6 +3,9 @@ import '../../../domain/entities/local_image_entity.dart';
 import '../../../data/repositories/local_images_repository_impl.dart';
 import 'local_images_state.dart';
 
+/// LocalImagesCubit
+/// 
+/// This class represents the state management for the local images.
 class LocalImagesCubit extends Cubit<LocalImagesState> {
   final LocalImagesRepositoryImpl repository;
 
@@ -36,7 +39,7 @@ class LocalImagesCubit extends Cubit<LocalImagesState> {
     await loadImages();
   }
 
-  // Actualizar imagen
+  // updateImage
   Future<void> updateImage(String id, String newCustomName) async {
     emit(LocalImagesLoading());
 
@@ -51,4 +54,16 @@ class LocalImagesCubit extends Cubit<LocalImagesState> {
     emit(LocalImageUpdated());
     await loadImages();
   }
+
+  /// Searches for images by text.
+  Future<List<LocalImageEntity>> searchImages(String query) async {
+    try {
+      final results = await repository.search(query);
+      return results;
+    } catch (e) {
+      // Opcional: loguear o retornar lista vacía
+      return [];
+    }
+  }
+
 }

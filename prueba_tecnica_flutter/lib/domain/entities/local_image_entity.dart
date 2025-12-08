@@ -1,4 +1,9 @@
 
+
+/// LocalImageEntity
+/// 
+/// This class represents a local image entity with properties for ID, author, download URL, and custom name. 
+/// 
 class LocalImageEntity {
   final String id;
   final String author;
@@ -26,6 +31,8 @@ class LocalImageEntity {
     );
   }
 
+
+  /// Converts the LocalImageEntity to a Map.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -35,6 +42,8 @@ class LocalImageEntity {
     };
   }
 
+
+  /// Creates a LocalImageEntity from a Map.
   factory LocalImageEntity.fromMap(Map<String, dynamic> map) {
     return LocalImageEntity(
       id: map['id'].toString(),
@@ -44,6 +53,8 @@ class LocalImageEntity {
     );
   }
 
+
+/// Overrides the equality operator.
   @override
   String toString() =>
       'LocalImageEntity(id: $id, author: $author, downloadUrl: $downloadUrl, customName: $customName)';
